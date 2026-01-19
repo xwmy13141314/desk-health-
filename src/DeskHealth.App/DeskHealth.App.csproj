@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>DeskHealth.App</RootNamespace>
+    <AssemblyName>DeskHealth</AssemblyName>
+    <Product>DeskHealth</Product>
+    <Description>桌面健康提醒工具</Description>
+    <Company>DeskHealth</Company>
+    <Version>1.0.0</Version>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- 优化配置 -->
+    <!-- 移除不必要的语言资源 (可节省约 30-50MB) -->
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+    <!-- 使用发布版本优化 -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DeskHealth.Core\DeskHealth.Core.csproj" />
+    <ProjectReference Include="..\DeskHealth.Services\DeskHealth.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hardcodet.Wpf.TaskbarNotification" Version="1.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="tubiao\22222.png" />
+  </ItemGroup>
+
+</Project>
