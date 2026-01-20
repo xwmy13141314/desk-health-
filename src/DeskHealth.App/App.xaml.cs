@@ -56,6 +56,7 @@ public partial class App : Application
         services.AddSingleton<ITimerService, TimerService>();
 
         // 应用服务
+        services.AddSingleton<INotifyService, NotifyService>();
         services.AddSingleton<NotifyService>();
         services.AddSingleton<TrayIconService>();
 

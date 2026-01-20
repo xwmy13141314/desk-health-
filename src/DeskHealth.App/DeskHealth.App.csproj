@@ -11,7 +11,9 @@
     <Product>DeskHealth</Product>
     <Description>桌面健康提醒工具</Description>
     <Company>DeskHealth</Company>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
+    <!-- 应用程序图标 -->
+    <ApplicationIcon>..\..\tubiao\22222.ico</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

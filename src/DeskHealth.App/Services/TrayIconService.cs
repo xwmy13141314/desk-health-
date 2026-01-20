@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -110,6 +111,23 @@ public class TrayIconService : IDisposable
         contextMenu.Items.Add(titleItem);
         contextMenu.Items.Add(new System.Windows.Controls.Separator());
 
+        // 测试提醒
+        var testHydrationItem = new System.Windows.Controls.MenuItem
+        {
+            Header = "测试喝水提醒"
+        };
+        testHydrationItem.Click += (s, e) => TestReminder(ReminderType.Hydration);
+        contextMenu.Items.Add(testHydrationItem);
+
+        var testBreakItem = new System.Windows.Controls.MenuItem
+        {
+            Header = "测试休息提醒"
+        };
+        testBreakItem.Click += (s, e) => TestReminder(ReminderType.Break);
+        contextMenu.Items.Add(testBreakItem);
+
+        contextMenu.Items.Add(new System.Windows.Controls.Separator());
+
         // 关于
         var aboutItem = new System.Windows.Controls.MenuItem
         {
@@ -209,6 +227,24 @@ public class TrayIconService : IDisposable
     {
         var window = _serviceProvider.GetRequiredService<AboutWindow>();
         window.ShowDialog();
+    }
+
+    private void TestReminder(ReminderType type)
+    {
+        Debug.WriteLine($"[TrayIconService] TestReminder called with type={type}");
+
+        // 获取配置服务并触发测试提醒
+        var configService = _serviceProvider.GetRequiredService<IConfigService>();
+        var reminder = configService.GetReminder(type);
+
+        Debug.WriteLine($"[TrayIconService] Got reminder: {reminder.Title}");
+
+        var notifyService = _serviceProvider.GetRequiredService<INotifyService>();
+        Debug.WriteLine($"[TrayIconService] Calling notifyService.ShowReminder...");
+
+        notifyService.ShowReminder(reminder);
+
+        Debug.WriteLine($"[TrayIconService] TestReminder completed");
     }
 
     private void ExitApplication()

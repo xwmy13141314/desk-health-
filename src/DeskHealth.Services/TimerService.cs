@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using DeskHealth.Core.Entities;
 using DeskHealth.Core.Events;
@@ -14,6 +15,9 @@ public class TimerService : ITimerService, IDisposable
     private readonly IConfigService _configService;
     private TimerState _state;
     private CancellationTokenSource? _pauseCts;
+    private readonly List<ReminderType> _pendingReminders;
+    private Timer? _mergeCheckTimer;
+    private readonly object _lockObject = new();
 
     public event EventHandler<ReminderEventArgs>? ReminderTriggered;
     public event EventHandler<TimerState>? StateChanged;
@@ -25,10 +29,13 @@ public class TimerService : ITimerService, IDisposable
         _configService = configService;
         _timers = new Dictionary<ReminderType, Timer>();
         _state = TimerState.Running;
+        _pendingReminders = new List<ReminderType>();
     }
 
     public void Start()
     {
+        Debug.WriteLine("[TimerService] Start() called");
+
         if (_state != TimerState.Running)
         {
             _state = TimerState.Running;
@@ -114,10 +121,14 @@ public class TimerService : ITimerService, IDisposable
 
         var config = _configService.LoadConfig();
 
+        Debug.WriteLine($"[TimerService] Loading config with {config.Reminders.Count} reminders");
+
         foreach (var reminder in config.Reminders)
         {
             var dueTime = TimeSpan.FromMinutes(reminder.IntervalMinutes);
             var period = TimeSpan.FromMinutes(reminder.IntervalMinutes);
+
+            Debug.WriteLine($"[TimerService] Creating timer for {reminder.Type}: {reminder.Title} (interval: {reminder.IntervalMinutes} minutes)");
 
             var timer = new Timer(
                 state => OnReminderTriggered(reminder.Type),
@@ -127,23 +138,91 @@ public class TimerService : ITimerService, IDisposable
 
             _timers[reminder.Type] = timer;
         }
+
+        Debug.WriteLine($"[TimerService] Initialized {_timers.Count} timers");
     }
 
     private void OnReminderTriggered(ReminderType type)
     {
+        Debug.WriteLine($"[TimerService] OnReminderTriggered called for {type}, state: {_state}");
+
         if (_state != TimerState.Running)
         {
+            Debug.WriteLine($"[TimerService] Skipping reminder - not running (state: {_state})");
             return;
         }
 
+        lock (_lockObject)
+        {
+            // 将触发类型添加到待处理列表
+            _pendingReminders.Add(type);
+            Debug.WriteLine($"[TimerService] Added {type} to pending list, count: {_pendingReminders.Count}");
+
+            // 停止之前的合并检查定时器
+            _mergeCheckTimer?.Dispose();
+
+            // 启动新的合并检查定时器（500ms 延迟）
+            _mergeCheckTimer = new Timer(
+                _ => ProcessPendingReminders(),
+                null,
+                500,
+                Timeout.Infinite);
+        }
+    }
+
+    private void ProcessPendingReminders()
+    {
+        List<ReminderType> remindersToProcess;
+
+        lock (_lockObject)
+        {
+            if (_pendingReminders.Count == 0)
+            {
+                Debug.WriteLine("[TimerService] No pending reminders to process");
+                return;
+            }
+
+            // 复制待处理列表并清空
+            remindersToProcess = _pendingReminders.ToList();
+            _pendingReminders.Clear();
+            _mergeCheckTimer?.Dispose();
+            _mergeCheckTimer = null;
+        }
+
+        Debug.WriteLine($"[TimerService] Processing {remindersToProcess.Count} reminder(s): {string.Join(", ", remindersToProcess)}");
+
         try
         {
-            var reminder = _configService.GetReminder(type);
-            ReminderTriggered?.Invoke(this, new ReminderEventArgs(reminder));
+            if (remindersToProcess.Count > 1)
+            {
+                // 多个提醒同时触发，创建合并提醒
+                var reminders = remindersToProcess
+                    .Select(t => _configService.GetReminder(t))
+                    .Where(r => r != null)
+                    .ToArray()!;
+
+                if (reminders.Length > 0)
+                {
+                    var combinedReminder = CombinedReminder.Create(reminders);
+                    Debug.WriteLine($"[TimerService] Triggering COMBINED reminder: {combinedReminder.Title}");
+                    ReminderTriggered?.Invoke(this, new ReminderEventArgs(combinedReminder));
+                }
+            }
+            else
+            {
+                // 单个提醒
+                var type = remindersToProcess[0];
+                var reminder = _configService.GetReminder(type);
+                if (reminder != null)
+                {
+                    Debug.WriteLine($"[TimerService] Triggering single reminder: {reminder.Title}");
+                    ReminderTriggered?.Invoke(this, new ReminderEventArgs(reminder));
+                }
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // 静默处理错误
+            Debug.WriteLine($"[TimerService] ERROR in ProcessPendingReminders: {ex.Message}");
         }
     }
 
@@ -154,6 +233,9 @@ public class TimerService : ITimerService, IDisposable
             timer.Dispose();
         }
         _timers.Clear();
+
+        _mergeCheckTimer?.Dispose();
+        _mergeCheckTimer = null;
 
         _pauseCts?.Cancel();
         _pauseCts?.Dispose();

@@ -6,9 +6,14 @@ namespace DeskHealth.Core.Events;
 public class ReminderEventArgs : EventArgs
 {
     /// <summary>
-    /// 提醒实体
+    /// 提醒实体（单个提醒或组合提醒）
     /// </summary>
     public Entities.Reminder Reminder { get; }
+
+    /// <summary>
+    /// 是否为组合提醒
+    /// </summary>
+    public bool IsCombined => Reminder is Entities.CombinedReminder;
 
     /// <summary>
     /// 触发时间

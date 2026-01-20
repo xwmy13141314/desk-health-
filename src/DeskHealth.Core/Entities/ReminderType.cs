@@ -13,5 +13,10 @@ public enum ReminderType
     /// <summary>
     /// 休息提醒
     /// </summary>
-    Break = 2
+    Break = 2,
+
+    /// <summary>
+    /// 组合提醒（喝水+休息）
+    /// </summary>
+    Combined = 3
 }

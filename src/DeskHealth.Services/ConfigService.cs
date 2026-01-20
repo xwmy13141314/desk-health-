@@ -90,7 +90,7 @@ public class ConfigService : IConfigService
                     Title = "该喝水了 🥤",
                     Message = "保持健康，多喝水！",
                     IntervalMinutes = 30,
-                    AutoCloseSeconds = 10,
+                    AutoCloseSeconds = 30,
                     Icon = "🥤"
                 }
                 : new Reminder
@@ -99,7 +99,7 @@ public class ConfigService : IConfigService
                     Title = "休息一下 🌿",
                     Message = "站起来活动活动，保护颈椎！",
                     IntervalMinutes = 60,
-                    AutoCloseSeconds = 10,
+                    AutoCloseSeconds = 30,
                     Icon = "🌿"
                 };
         }
@@ -128,7 +128,7 @@ public class ConfigService : IConfigService
                     Title = "该喝水了 🥤",
                     Message = "保持健康，多喝水！",
                     IntervalMinutes = 30,
-                    AutoCloseSeconds = 10,
+                    AutoCloseSeconds = 30,
                     Icon = "🥤"
                 },
                 new Reminder
@@ -137,7 +137,7 @@ public class ConfigService : IConfigService
                     Title = "休息一下 🌿",
                     Message = "站起来活动活动，保护颈椎！",
                     IntervalMinutes = 60,
-                    AutoCloseSeconds = 10,
+                    AutoCloseSeconds = 30,
                     Icon = "🌿"
                 }
             }
